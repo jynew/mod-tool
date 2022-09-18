@@ -64,12 +64,28 @@
         </n-form-item>
       </div>
     </n-form>
+    <n-drawer v-model:show="active" :width="502" placement="right">
+      <n-drawer-content title="日志" :native-scrollbar="false">
+        {{ log }}
+      </n-drawer-content>
+    </n-drawer>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import { FormInst, NForm, NFormItem, NButton, NInput, NRadioGroup, NRadio, NSpace } from 'naive-ui'
+import {
+  FormInst,
+  NForm,
+  NFormItem,
+  NButton,
+  NInput,
+  NRadioGroup,
+  NRadio,
+  NSpace,
+  NDrawer,
+  NDrawerContent
+} from 'naive-ui'
 
 const formRef = ref<FormInst | null>(null)
 // const message = useMessage()
@@ -86,6 +102,7 @@ const formValue = ref({
   contentfolder: '',
   previewfile: ''
 })
+
 const visibilities = [
   {
     label: '所有人可见',
@@ -135,6 +152,10 @@ const rules = ref({
 
 const loading = ref(false)
 
+const active = ref(false)
+
+const log = ref('')
+
 const handleContentfolderClick = async () => {
   // eslint-disable-next-line no-undef
   const result = await ipcRenderer.invoke('open-directory')
@@ -149,9 +170,43 @@ const handlePreviewfileClick = async () => {
 
 const handleValidateClick = (e: MouseEvent) => {
   e.preventDefault()
-  formRef.value?.validate((errors) => {
+  formRef.value?.validate(async (errors) => {
     if (!errors) {
       loading.value = true
+      active.value = true
+      log.value = 'logloglog'
+      const {
+        appid,
+        publishedfileid,
+        title,
+        description,
+        changenote,
+        visibility,
+        loginName,
+        password,
+        guard,
+        contentfolder,
+        previewfile
+      } = formValue.value
+      const value = {
+        appid,
+        publishedfileid,
+        title,
+        description,
+        changenote,
+        visibility,
+        contentfolder,
+        previewfile
+      }
+      const auth = {
+        loginName,
+        password,
+        guard
+      }
+      // eslint-disable-next-line no-undef
+      await ipcRenderer.invoke('write-file', JSON.stringify(value, null, 2))
+      // eslint-disable-next-line no-undef
+      await ipcRenderer.invoke('cmd', JSON.stringify(auth))
       console.log('success')
     } else {
       console.error(errors)

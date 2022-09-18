@@ -1,6 +1,8 @@
 import { app, shell, BrowserWindow, ipcMain, dialog } from 'electron'
 import * as path from 'path'
+import * as fs from 'fs'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
+import { SteamCmd } from 'steamcmd-interface'
 
 function createWindow(): void {
   // Create the browser window.
@@ -70,6 +72,35 @@ ipcMain.handle('open-file', () => {
   return dialog.showOpenDialogSync({
     properties: ['openFile']
   })
+})
+
+let vdfPath = ''
+
+ipcMain.handle('write-file', (_event, value: string) => {
+  try {
+    const data = JSON.parse(value)
+    vdfPath = path.join(__dirname, `./${data.title}.vdf`)
+    fs.writeFileSync(vdfPath, '"workshopitem"\n' + value.replace(/:|,/g, ''))
+  } catch (error) {
+    console.log(error)
+  }
+})
+
+ipcMain.handle('cmd', async (_event, value: string) => {
+  try {
+    const data = JSON.parse(value)
+    const steamCmd = await SteamCmd.init()
+    const commands = [
+      `login ${data.loginName} ${data.password} ${data.guard}`,
+      `workshop_build_item ${vdfPath}`
+    ]
+
+    for await (const line of steamCmd.run(commands)) {
+      console.log(line)
+    }
+  } catch (error) {
+    console.log(error)
+  }
 })
 
 // Quit when all windows are closed, except on macOS. There, it's common
