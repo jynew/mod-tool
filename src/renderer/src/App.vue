@@ -1,75 +1,172 @@
-<script setup lang="ts">
-import Versions from '@renderer/components/Versions.vue'
-</script>
-
 <template>
-  <Versions></Versions>
-  <svg viewBox="0 0 900 300">
-    <use xlink:href="./assets/icons.svg#electron" />
-  </svg>
-  <h2>You've successfully created an Electron project with Vue and TypeScript</h2>
-
-  <p class="desc">Please try pressing <code>F12</code> to open the devTool</p>
-
-  <p class="desc">
-    What features are being added to the project to help you develop, build and pack Electron app
-  </p>
-
-  <div class="features">
-    <ul>
-      <li>
-        <p>
-          ● Use
-          <a target="_blank" href="https://eslint.org/docs/user-guide/getting-started">ESLint</a>
-          and <a target="_blank" href="https://prettier.io">Prettier</a> to better lint and style
-          your code, help you to write high-quality code.
-        </p>
-      </li>
-      <li>
-        <p>
-          ● Use
-          <a target="_blank" href="https://github.com/alex8088/electron-vite">electron-vite</a>
-          , a fast build tooling integrated with
-          <a target="_blank" href="https://vitejs.dev">Vite</a>, and you don't need to worry about
-          configuration.
-        </p>
-      </li>
-      <li>
-        <p>
-          ● Use
-          <a target="_blank" href="https://github.com/alex8088/electron-toolkit"
-            >electron-toolkit</a
-          >
-          that make you easy to develop. For example: TSconfigs extends, expose common Electron APIs
-          to renderers in preload scripts and effective utils for the main process.
-        </p>
-      </li>
-      <li>
-        <p>
-          ● Use <a target="_blank" href="https://www.electron.build">electron-builder</a> and preset
-          common configuration, allows you to easily pack Electron app.
-        </p>
-      </li>
-      <li>
-        <p>● More instructions are available in README.md.</p>
-      </li>
-    </ul>
-  </div>
-
-  <p class="footer">
-    See
-    <a
-      target="_blank"
-      href="https://github.com/alex8088/quick-start/blob/master/packages/create-electron"
-      >create-electron</a
+  <div>
+    <n-form
+      ref="formRef"
+      class="form"
+      label-width="auto"
+      label-placement="top"
+      :model="formValue"
+      :rules="rules"
     >
-    for more details on each supported template:
-    <br />
-    <code>sample</code>, <code>sample-ts</code>, <code>vue</code>, <code>vue-ts</code>,
-    <code>react</code>, <code>react-ts</code>, <code>svelte</code>, <code>svelte-ts</code>
-  </p>
+      <div class="form-items">
+        <n-form-item label="APP ID" path="appid">
+          <n-input v-model:value="formValue.appid" placeholder="默认群侠传，启动Id" />
+        </n-form-item>
+        <n-form-item label="Publishedfile Id">
+          <n-input
+            v-model:value="formValue.publishedfileid"
+            placeholder="创建新Mod可以不设，更新Mod则用原Id"
+          />
+        </n-form-item>
+        <n-form-item label="标题" path="title">
+          <n-input v-model:value="formValue.title" placeholder="" />
+        </n-form-item>
+        <n-form-item label="内容简介">
+          <n-input v-model:value="formValue.description" type="textarea" placeholder="" />
+        </n-form-item>
+        <n-form-item label="更新日志">
+          <n-input v-model:value="formValue.changenote" type="textarea" placeholder="" />
+        </n-form-item>
+        <n-form-item label="可见性">
+          <n-radio-group v-model:value="formValue.visibility" name="radiogroup">
+            <n-space>
+              <n-radio
+                v-for="visibility in visibilities"
+                :key="visibility.value"
+                :value="visibility.value"
+              >
+                {{ visibility.label }}
+              </n-radio>
+            </n-space>
+          </n-radio-group>
+        </n-form-item>
+      </div>
+      <div class="form-items">
+        <n-form-item label="Steam LoginName" path="loginName">
+          <n-input v-model:value="formValue.loginName" placeholder="账户名称" />
+        </n-form-item>
+        <n-form-item label="Steam Password" path="password">
+          <n-input v-model:value="formValue.password" type="password" placeholder="密码" />
+        </n-form-item>
+        <n-form-item label="Steam Guard">
+          <n-input v-model:value="formValue.guard" placeholder="有令牌则输入，无则不用" />
+        </n-form-item>
+        <n-form-item label="内容文件夹" path="contentfolder">
+          <n-input v-model:value="formValue.contentfolder" placeholder="" />
+          <n-button style="margin-left: 12px" @click="handleContentfolderClick">浏览</n-button>
+        </n-form-item>
+        <n-form-item label="预览图" path="previewfile">
+          <n-input v-model:value="formValue.previewfile" placeholder="" />
+          <n-button style="margin-left: 12px" @click="handlePreviewfileClick">浏览</n-button>
+        </n-form-item>
+        <n-form-item>
+          <n-button size="large" :loading="loading" @click="handleValidateClick">上传</n-button>
+        </n-form-item>
+      </div>
+    </n-form>
+  </div>
 </template>
+
+<script setup lang="ts">
+import { ref } from 'vue'
+import { FormInst, NForm, NFormItem, NButton, NInput, NRadioGroup, NRadio, NSpace } from 'naive-ui'
+
+const formRef = ref<FormInst | null>(null)
+// const message = useMessage()
+const formValue = ref({
+  appid: '2098790',
+  publishedfileid: '',
+  title: '',
+  description: '',
+  changenote: '',
+  visibility: '0',
+  loginName: '',
+  password: '',
+  guard: '',
+  contentfolder: '',
+  previewfile: ''
+})
+const visibilities = [
+  {
+    label: '所有人可见',
+    value: '0'
+  },
+  {
+    label: '仅好友可见',
+    value: '1'
+  },
+  {
+    label: '仅创建者',
+    value: '2'
+  }
+]
+const rules = ref({
+  appid: {
+    required: true,
+    message: '请APP ID',
+    trigger: ['blur']
+  },
+  title: {
+    required: true,
+    message: '请输入标题',
+    trigger: ['blur']
+  },
+  loginName: {
+    required: true,
+    message: '请输入账户名称',
+    trigger: ['blur']
+  },
+  password: {
+    required: true,
+    message: '请输入密码',
+    trigger: ['blur']
+  },
+  contentfolder: {
+    required: true,
+    message: '请选择内容文件夹',
+    trigger: ['blur', 'change']
+  },
+  previewfile: {
+    required: true,
+    message: '请选择预览图',
+    trigger: ['blur', 'change']
+  }
+})
+
+const loading = ref(false)
+
+const handleContentfolderClick = async () => {
+  // eslint-disable-next-line no-undef
+  const result = await ipcRenderer.invoke('open-directory')
+  formValue.value.contentfolder = result[0]
+}
+
+const handlePreviewfileClick = async () => {
+  // eslint-disable-next-line no-undef
+  const result = await ipcRenderer.invoke('open-file')
+  formValue.value.previewfile = result[0]
+}
+
+const handleValidateClick = (e: MouseEvent) => {
+  e.preventDefault()
+  formRef.value?.validate((errors) => {
+    if (!errors) {
+      loading.value = true
+      console.log('success')
+    } else {
+      console.error(errors)
+    }
+  })
+}
+</script>
 
 <style lang="less">
 @import './assets/css/styles.less';
+.form {
+  display: flex;
+}
+.form-items {
+  width: 50%;
+  padding: 20px;
+}
 </style>
