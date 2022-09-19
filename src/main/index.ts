@@ -73,6 +73,7 @@ ipcMain.handle('open-directory', () => {
 
 ipcMain.handle('open-file', () => {
   return dialog.showOpenDialogSync({
+    filters: [{ name: 'Images', extensions: ['jpg', 'png'] }],
     properties: ['openFile']
   })
 })

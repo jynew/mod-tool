@@ -151,12 +151,12 @@ const rules = ref({
   contentfolder: {
     required: true,
     message: '请选择内容文件夹',
-    trigger: ['blur', 'change']
+    trigger: ['blur']
   },
   previewfile: {
     required: true,
     message: '请选择预览图',
-    trigger: ['blur', 'change']
+    trigger: ['blur']
   }
 })
 const loading = ref(false)
