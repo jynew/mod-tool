@@ -82,7 +82,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watchEffect, nextTick } from 'vue'
+import { ref, onMounted, watchEffect, nextTick } from 'vue'
 import {
   NConfigProvider,
   darkTheme,
@@ -164,12 +164,14 @@ const active = ref(false)
 const log = ref('')
 const logRef = ref<LogInst | null>(null)
 
-watchEffect(() => {
-  if (log.value) {
-    nextTick(() => {
-      logRef.value?.scrollTo({ position: 'bottom', slient: true })
-    })
-  }
+onMounted(() => {
+  watchEffect(() => {
+    if (log.value) {
+      nextTick(() => {
+        logRef.value?.scrollTo({ position: 'bottom', slient: true })
+      })
+    }
+  })
 })
 
 const handleContentfolderClick = async () => {
@@ -222,6 +224,8 @@ const handleValidateClick = (e: MouseEvent) => {
       await ipcRenderer.invoke('write-file', JSON.stringify(value, null, 2))
       // eslint-disable-next-line no-undef
       await ipcRenderer.invoke('cmd', JSON.stringify(auth))
+      // eslint-disable-next-line no-undef
+      log.value += await ipcRenderer.invoke('download')
       // eslint-disable-next-line no-undef
       ipcRenderer.on('stdout', (_event, result) => {
         log.value += result

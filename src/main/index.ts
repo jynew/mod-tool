@@ -82,6 +82,7 @@ let VDF_PATH = ''
 
 ipcMain.handle('write-file', (_event, value: string) => {
   try {
+    fs.mkdirSync(ROOT_CACHE_PATH, { recursive: true })
     const data = JSON.parse(value)
     VDF_PATH = path.join(ROOT_CACHE_PATH, `${data.title}.vdf`)
     fs.writeFileSync(VDF_PATH, '"workshopitem"\n' + value.replace(/:|,/g, ''))
@@ -96,9 +97,7 @@ ipcMain.handle('cmd', async (event, value: string) => {
     const CMD_PATH = path.join(ROOT_CACHE_PATH, fileName)
 
     if (!fs.existsSync(CMD_PATH)) {
-      event.sender.send('stdout', 'Downloading file...')
       await downloadFile(ROOT_CACHE_PATH)
-      event.sender.send('stdout', 'Extracting downloaded file.')
     }
 
     const data = JSON.parse(value)

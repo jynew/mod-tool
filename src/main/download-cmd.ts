@@ -4,9 +4,7 @@ import fs from 'fs'
 import axios from 'axios'
 import AdmZip from 'adm-zip'
 import tar from 'tar'
-import http from 'axios/lib/adapters/http'
-
-axios.defaults.adapter = http
+import { ipcMain } from 'electron'
 
 export function getUrl(): Record<string, string> {
   let url = ''
@@ -41,9 +39,16 @@ export async function downloadFile(outPath: string): Promise<void> {
   const tempFile = path.join(os.tmpdir(), `mod-tool-${Date.now()}`)
   const writer = fs.createWriteStream(tempFile)
 
-  console.log(`Downloading file: ${url}`)
+  ipcMain.handle('download', () => {
+    return `Downloading file: ${url}`
+  })
 
-  const reponse = await axios({ url, responseType: 'stream', method: 'GET' })
+  const reponse = await axios({
+    url,
+    responseType: 'stream',
+    method: 'GET',
+    adapter: require('axios/lib/adapters/http')
+  })
 
   reponse.data.pipe(writer)
 
@@ -51,8 +56,6 @@ export async function downloadFile(outPath: string): Promise<void> {
     writer.on('finish', resolve)
     writer.on('error', reject)
   })
-
-  console.log(`Extracting downloaded file`)
 
   if (fileType === 'gzip') {
     tar.extract({
