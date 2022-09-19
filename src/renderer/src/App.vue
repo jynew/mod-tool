@@ -1,80 +1,91 @@
 <template>
-  <div>
-    <n-form
-      ref="formRef"
-      class="form"
-      label-width="auto"
-      label-placement="top"
-      :model="formValue"
-      :rules="rules"
-    >
-      <div class="form-items">
-        <n-form-item label="APP ID" path="appid">
-          <n-input v-model:value="formValue.appid" placeholder="默认群侠传，启动Id" />
-        </n-form-item>
-        <n-form-item label="Publishedfile Id">
-          <n-input
-            v-model:value="formValue.publishedfileid"
-            placeholder="创建新Mod可以不设，更新Mod则用原Id"
-          />
-        </n-form-item>
-        <n-form-item label="标题" path="title">
-          <n-input v-model:value="formValue.title" placeholder="" />
-        </n-form-item>
-        <n-form-item label="内容简介">
-          <n-input v-model:value="formValue.description" type="textarea" placeholder="" />
-        </n-form-item>
-        <n-form-item label="更新日志">
-          <n-input v-model:value="formValue.changenote" type="textarea" placeholder="" />
-        </n-form-item>
-        <n-form-item label="可见性">
-          <n-radio-group v-model:value="formValue.visibility" name="radiogroup">
-            <n-space>
-              <n-radio
-                v-for="visibility in visibilities"
-                :key="visibility.value"
-                :value="visibility.value"
-              >
-                {{ visibility.label }}
-              </n-radio>
-            </n-space>
-          </n-radio-group>
-        </n-form-item>
-      </div>
-      <div class="form-items">
-        <n-form-item label="Steam LoginName" path="loginName">
-          <n-input v-model:value="formValue.loginName" placeholder="账户名称" />
-        </n-form-item>
-        <n-form-item label="Steam Password" path="password">
-          <n-input v-model:value="formValue.password" type="password" placeholder="密码" />
-        </n-form-item>
-        <n-form-item label="Steam Guard">
-          <n-input v-model:value="formValue.guard" placeholder="有令牌则输入，无则不用" />
-        </n-form-item>
-        <n-form-item label="内容文件夹" path="contentfolder">
-          <n-input v-model:value="formValue.contentfolder" placeholder="" />
-          <n-button style="margin-left: 12px" @click="handleContentfolderClick">浏览</n-button>
-        </n-form-item>
-        <n-form-item label="预览图" path="previewfile">
-          <n-input v-model:value="formValue.previewfile" placeholder="" />
-          <n-button style="margin-left: 12px" @click="handlePreviewfileClick">浏览</n-button>
-        </n-form-item>
-        <n-form-item>
-          <n-button size="large" :loading="loading" @click="handleValidateClick">上传</n-button>
-        </n-form-item>
-      </div>
-    </n-form>
-    <n-drawer v-model:show="active" :width="502" placement="right">
-      <n-drawer-content title="日志" :native-scrollbar="false">
-        {{ log }}
-      </n-drawer-content>
-    </n-drawer>
-  </div>
+  <n-config-provider :theme="darkTheme">
+    <div>
+      <n-form
+        ref="formRef"
+        class="form"
+        label-width="auto"
+        label-placement="top"
+        :model="formValue"
+        :rules="rules"
+      >
+        <div class="form-items">
+          <n-form-item label="APP ID" path="appid">
+            <n-input v-model:value="formValue.appid" placeholder="默认群侠传，启动Id" />
+          </n-form-item>
+          <n-form-item label="Publishedfile Id">
+            <n-input
+              v-model:value="formValue.publishedfileid"
+              placeholder="创建新Mod可以不设，更新Mod则用原Id"
+            />
+          </n-form-item>
+          <n-form-item label="标题" path="title">
+            <n-input v-model:value="formValue.title" placeholder="" />
+          </n-form-item>
+          <n-form-item label="内容简介">
+            <n-input v-model:value="formValue.description" type="textarea" placeholder="" />
+          </n-form-item>
+          <n-form-item label="更新日志">
+            <n-input v-model:value="formValue.changenote" type="textarea" placeholder="" />
+          </n-form-item>
+          <n-form-item label="可见性">
+            <n-radio-group v-model:value="formValue.visibility" name="radiogroup">
+              <n-space>
+                <n-radio
+                  v-for="visibility in visibilities"
+                  :key="visibility.value"
+                  :value="visibility.value"
+                >
+                  {{ visibility.label }}
+                </n-radio>
+              </n-space>
+            </n-radio-group>
+          </n-form-item>
+        </div>
+        <div class="form-items">
+          <n-form-item label="Steam LoginName" path="loginName">
+            <n-input v-model:value="formValue.loginName" placeholder="账户名称" />
+          </n-form-item>
+          <n-form-item label="Steam Password" path="password">
+            <n-input v-model:value="formValue.password" type="password" placeholder="密码" />
+          </n-form-item>
+          <n-form-item label="Steam Guard">
+            <n-input v-model:value="formValue.guard" placeholder="有令牌则输入，无则不用" />
+          </n-form-item>
+          <n-form-item label="内容文件夹" path="contentfolder">
+            <n-input v-model:value="formValue.contentfolder" placeholder="" />
+            <n-button style="margin-left: 12px" @click="handleContentfolderClick">浏览</n-button>
+          </n-form-item>
+          <n-form-item label="预览图" path="previewfile">
+            <n-input v-model:value="formValue.previewfile" placeholder="" />
+            <n-button style="margin-left: 12px" @click="handlePreviewfileClick">浏览</n-button>
+          </n-form-item>
+          <n-form-item>
+            <n-button size="large" :loading="loading" @click="handleValidateClick">上传</n-button>
+          </n-form-item>
+        </div>
+      </n-form>
+    </div>
+    <n-modal v-model:show="active" :mask-closable="false">
+      <n-card
+        style="width: 600px"
+        title="日志"
+        :bordered="false"
+        size="huge"
+        role="dialog"
+        aria-modal="true"
+      >
+        <n-log ref="logRef" :log="log" trim />
+      </n-card>
+    </n-modal>
+  </n-config-provider>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, watchEffect, nextTick } from 'vue'
 import {
+  NConfigProvider,
+  darkTheme,
   FormInst,
   NForm,
   NFormItem,
@@ -83,12 +94,12 @@ import {
   NRadioGroup,
   NRadio,
   NSpace,
-  NDrawer,
-  NDrawerContent
+  NModal,
+  NCard,
+  NLog,
+  LogInst
 } from 'naive-ui'
-
 const formRef = ref<FormInst | null>(null)
-// const message = useMessage()
 const formValue = ref({
   appid: '2098790',
   publishedfileid: '',
@@ -102,7 +113,6 @@ const formValue = ref({
   contentfolder: '',
   previewfile: ''
 })
-
 const visibilities = [
   {
     label: '所有人可见',
@@ -149,12 +159,18 @@ const rules = ref({
     trigger: ['blur', 'change']
   }
 })
-
 const loading = ref(false)
-
 const active = ref(false)
-
 const log = ref('')
+const logRef = ref<LogInst | null>(null)
+
+watchEffect(() => {
+  if (log.value) {
+    nextTick(() => {
+      logRef.value?.scrollTo({ position: 'bottom', slient: true })
+    })
+  }
+})
 
 const handleContentfolderClick = async () => {
   // eslint-disable-next-line no-undef
@@ -174,7 +190,6 @@ const handleValidateClick = (e: MouseEvent) => {
     if (!errors) {
       loading.value = true
       active.value = true
-      log.value = 'logloglog'
       const {
         appid,
         publishedfileid,
@@ -207,7 +222,14 @@ const handleValidateClick = (e: MouseEvent) => {
       await ipcRenderer.invoke('write-file', JSON.stringify(value, null, 2))
       // eslint-disable-next-line no-undef
       await ipcRenderer.invoke('cmd', JSON.stringify(auth))
-      console.log('success')
+      // eslint-disable-next-line no-undef
+      ipcRenderer.on('stdout', (_event, result) => {
+        log.value += result
+      })
+      // eslint-disable-next-line no-undef
+      ipcRenderer.on('close', () => {
+        loading.value = false
+      })
     } else {
       console.error(errors)
     }

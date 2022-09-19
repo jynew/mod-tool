@@ -1,8 +1,11 @@
 import { app, shell, BrowserWindow, ipcMain, dialog } from 'electron'
-import * as path from 'path'
-import * as fs from 'fs'
+import path from 'path'
+import fs from 'fs'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
-import { SteamCmd } from 'steamcmd-interface'
+import spawn from 'cross-spawn'
+
+import { ROOT_CACHE_PATH } from './path'
+import { getUrl, downloadFile } from './download-cmd'
 
 function createWindow(): void {
   // Create the browser window.
@@ -74,30 +77,46 @@ ipcMain.handle('open-file', () => {
   })
 })
 
-let vdfPath = ''
+let VDF_PATH = ''
 
 ipcMain.handle('write-file', (_event, value: string) => {
   try {
     const data = JSON.parse(value)
-    vdfPath = path.join(__dirname, `./${data.title}.vdf`)
-    fs.writeFileSync(vdfPath, '"workshopitem"\n' + value.replace(/:|,/g, ''))
+    VDF_PATH = path.join(ROOT_CACHE_PATH, `${data.title}.vdf`)
+    fs.writeFileSync(VDF_PATH, '"workshopitem"\n' + value.replace(/:|,/g, ''))
   } catch (error) {
     console.log(error)
   }
 })
 
-ipcMain.handle('cmd', async (_event, value: string) => {
+ipcMain.handle('cmd', async (event, value: string) => {
   try {
-    const data = JSON.parse(value)
-    const steamCmd = await SteamCmd.init()
-    const commands = [
-      `login ${data.loginName} ${data.password} ${data.guard}`,
-      `workshop_build_item ${vdfPath}`
-    ]
+    const { fileName } = getUrl()
+    const CMD_PATH = path.join(ROOT_CACHE_PATH, fileName)
 
-    for await (const line of steamCmd.run(commands)) {
-      console.log(line)
+    if (!fs.existsSync(CMD_PATH)) {
+      event.sender.send('stdout', 'Downloading file...')
+      await downloadFile(ROOT_CACHE_PATH)
+      event.sender.send('stdout', 'Extracting downloaded file.')
     }
+
+    const data = JSON.parse(value)
+    const cmd = spawn(CMD_PATH, [
+      '+login',
+      data.loginName,
+      data.password,
+      '+workshop_build_item',
+      VDF_PATH,
+      '+quit'
+    ])
+
+    cmd.stdout.on('data', (data) => {
+      event.sender.send('stdout', data.toString())
+    })
+
+    cmd.on('close', () => {
+      event.sender.send('close')
+    })
   } catch (error) {
     console.log(error)
   }
