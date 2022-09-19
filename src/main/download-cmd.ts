@@ -4,8 +4,9 @@ import fs from 'fs'
 import axios from 'axios'
 import AdmZip from 'adm-zip'
 import tar from 'tar'
+import http from 'axios/lib/adapters/http'
 
-axios.defaults.adapter = require('axios/lib/adapters/http')
+axios.defaults.adapter = http
 
 export function getUrl(): Record<string, string> {
   let url = ''
