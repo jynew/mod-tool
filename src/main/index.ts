@@ -122,6 +122,7 @@ ipcMain.handle('cmd', async (event, value: string) => {
       '+login',
       data.loginName,
       data.password,
+      data.guard,
       '+workshop_build_item',
       VDF_PATH,
       '+quit'
