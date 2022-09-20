@@ -22,6 +22,7 @@
   },
   "devDependencies": {
     "@electron-toolkit/tsconfig": "^1.0.1",
+    "@node-steam/vdf": "^2.2.0",
     "@rushstack/eslint-patch": "^1.1.4",
     "@types/node": "16.11.22",
     "@vitejs/plugin-vue": "^3.0.3",

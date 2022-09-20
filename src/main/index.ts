@@ -3,6 +3,7 @@ import path from 'path'
 import fs from 'fs'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import spawn from 'cross-spawn'
+import vdf from '@node-steam/vdf'
 
 import { ROOT_CACHE_PATH } from './path'
 import { getUrl, downloadFile } from './download-cmd'
@@ -79,7 +80,25 @@ ipcMain.handle('open-file', () => {
 })
 
 fs.mkdirSync(ROOT_CACHE_PATH, { recursive: true })
+const VDF_PATH = path.join(ROOT_CACHE_PATH, 'mod.vdf')
 const STORE_PATH = path.join(ROOT_CACHE_PATH, 'store.json')
+
+ipcMain.handle('get-vdf', () => {
+  try {
+    if (fs.existsSync(VDF_PATH)) {
+      const string = fs.readFileSync(VDF_PATH, 'utf8').split('\n').slice(2, -2).join('\n')
+      const data = vdf.parse(string)
+      const temp = {}
+      Object.keys(data).forEach((key) => {
+        temp[key] = data[key].toString()
+      })
+      return JSON.stringify(temp)
+    }
+  } catch (error) {
+    console.log(error)
+  }
+  return ''
+})
 
 ipcMain.handle('get-store', () => {
   if (fs.existsSync(STORE_PATH)) {
@@ -92,13 +111,11 @@ ipcMain.handle('set-store', (_event, value: string) => {
   fs.writeFileSync(STORE_PATH, value, 'utf8')
 })
 
-let VDF_PATH = ''
-
 ipcMain.handle('write-file', (_event, value: string) => {
   try {
     const data = JSON.parse(value)
-    VDF_PATH = path.join(ROOT_CACHE_PATH, `${data.title}.vdf`)
-    fs.writeFileSync(VDF_PATH, '"workshopitem"\n' + value.replace(/:|,/g, ''), 'utf8')
+    const string = vdf.stringify(data)
+    fs.writeFileSync(VDF_PATH, '"workshopitem"\n' + '{\n' + string + '}\n', 'utf8')
   } catch (error) {
     console.log(error)
   }
@@ -118,11 +135,12 @@ ipcMain.handle('download-file', async () => {
 ipcMain.handle('cmd', async (event, value: string) => {
   try {
     const data = JSON.parse(value)
+    const { loginName, password, guard } = data
     const cmd = spawn(CMD_PATH, [
       '+login',
-      data.loginName,
-      data.password,
-      data.guard,
+      loginName,
+      password,
+      guard,
       '+workshop_build_item',
       VDF_PATH,
       '+quit'

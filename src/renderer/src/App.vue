@@ -100,7 +100,7 @@ import {
   LogInst
 } from 'naive-ui'
 const formRef = ref<FormInst | null>(null)
-const formValue = ref({
+const initVal = {
   appid: '2098790',
   publishedfileid: '',
   title: '',
@@ -112,7 +112,8 @@ const formValue = ref({
   guard: '',
   contentfolder: '',
   previewfile: ''
-})
+}
+const formValue = ref({ ...initVal })
 const visibilities = [
   {
     label: '所有人可见',
@@ -165,10 +166,12 @@ const log = ref('')
 const logRef = ref<LogInst | null>(null)
 
 onMounted(async () => {
-  // eslint-disable-next-line no-undef
-  const value = await ipcRenderer.invoke('get-store')
   try {
-    formValue.value = JSON.parse(value)
+    // eslint-disable-next-line no-undef
+    const string = await ipcRenderer.invoke('get-store')
+    // eslint-disable-next-line no-undef
+    const value = await ipcRenderer.invoke('get-vdf')
+    formValue.value = { ...JSON.parse(string), ...JSON.parse(value) }
   } catch (error) {
     console.log(error)
   }
@@ -228,7 +231,7 @@ const handleValidateClick = (e: MouseEvent) => {
         guard
       }
       // eslint-disable-next-line no-undef
-      await ipcRenderer.invoke('set-store', JSON.stringify(formValue.value, null, 2))
+      await ipcRenderer.invoke('set-store', JSON.stringify(auth, null, 2))
       // eslint-disable-next-line no-undef
       await ipcRenderer.invoke('write-file', JSON.stringify(value, null, 2))
       // eslint-disable-next-line no-undef
