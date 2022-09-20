@@ -78,28 +78,45 @@ ipcMain.handle('open-file', () => {
   })
 })
 
+fs.mkdirSync(ROOT_CACHE_PATH, { recursive: true })
+const STORE_PATH = path.join(ROOT_CACHE_PATH, 'store.json')
+
+ipcMain.handle('get-store', () => {
+  if (fs.existsSync(STORE_PATH)) {
+    return fs.readFileSync(STORE_PATH, 'utf8')
+  }
+  return ''
+})
+
+ipcMain.handle('set-store', (_event, value: string) => {
+  fs.writeFileSync(STORE_PATH, value, 'utf8')
+})
+
 let VDF_PATH = ''
 
 ipcMain.handle('write-file', (_event, value: string) => {
   try {
-    fs.mkdirSync(ROOT_CACHE_PATH, { recursive: true })
     const data = JSON.parse(value)
     VDF_PATH = path.join(ROOT_CACHE_PATH, `${data.title}.vdf`)
-    fs.writeFileSync(VDF_PATH, '"workshopitem"\n' + value.replace(/:|,/g, ''))
+    fs.writeFileSync(VDF_PATH, '"workshopitem"\n' + value.replace(/:|,/g, ''), 'utf8')
   } catch (error) {
     console.log(error)
   }
 })
 
+const { fileName } = getUrl()
+const CMD_PATH = path.join(ROOT_CACHE_PATH, fileName)
+
+ipcMain.handle('download-file', async () => {
+  if (!fs.existsSync(CMD_PATH)) {
+    await downloadFile(ROOT_CACHE_PATH)
+    return `Downloading file...\n`
+  }
+  return `File exists, run now.\n`
+})
+
 ipcMain.handle('cmd', async (event, value: string) => {
   try {
-    const { fileName } = getUrl()
-    const CMD_PATH = path.join(ROOT_CACHE_PATH, fileName)
-
-    if (!fs.existsSync(CMD_PATH)) {
-      await downloadFile(ROOT_CACHE_PATH)
-    }
-
     const data = JSON.parse(value)
     const cmd = spawn(CMD_PATH, [
       '+login',

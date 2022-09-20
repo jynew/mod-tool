@@ -164,7 +164,14 @@ const active = ref(false)
 const log = ref('')
 const logRef = ref<LogInst | null>(null)
 
-onMounted(() => {
+onMounted(async () => {
+  // eslint-disable-next-line no-undef
+  const value = await ipcRenderer.invoke('get-store')
+  try {
+    formValue.value = JSON.parse(value)
+  } catch (error) {
+    console.log(error)
+  }
   watchEffect(() => {
     if (log.value) {
       nextTick(() => {
@@ -221,11 +228,13 @@ const handleValidateClick = (e: MouseEvent) => {
         guard
       }
       // eslint-disable-next-line no-undef
+      await ipcRenderer.invoke('set-store', JSON.stringify(formValue.value, null, 2))
+      // eslint-disable-next-line no-undef
       await ipcRenderer.invoke('write-file', JSON.stringify(value, null, 2))
       // eslint-disable-next-line no-undef
-      await ipcRenderer.invoke('cmd', JSON.stringify(auth))
+      log.value += await ipcRenderer.invoke('download-file')
       // eslint-disable-next-line no-undef
-      log.value += await ipcRenderer.invoke('download')
+      await ipcRenderer.invoke('cmd', JSON.stringify(auth))
       // eslint-disable-next-line no-undef
       ipcRenderer.on('stdout', (_event, result) => {
         log.value += result

@@ -1,10 +1,11 @@
 import os from 'os'
 import path from 'path'
 import fs from 'fs'
-import axios from 'axios'
+import fetch from 'node-fetch'
+import { promisify } from 'util'
+import { pipeline } from 'stream'
 import AdmZip from 'adm-zip'
 import tar from 'tar'
-import { ipcMain } from 'electron'
 
 export function getUrl(): Record<string, string> {
   let url = ''
@@ -39,23 +40,15 @@ export async function downloadFile(outPath: string): Promise<void> {
   const tempFile = path.join(os.tmpdir(), `mod-tool-${Date.now()}`)
   const writer = fs.createWriteStream(tempFile)
 
-  ipcMain.handle('download', () => {
-    return `Downloading file: ${url}`
-  })
+  const streamPipeline = promisify(pipeline)
 
-  const reponse = await axios({
-    url,
-    responseType: 'stream',
-    method: 'GET',
-    adapter: require('axios/lib/adapters/http')
-  })
+  const response = await fetch(url)
 
-  reponse.data.pipe(writer)
+  if (!response.ok) {
+    throw new Error(`Unexpected response ${response.statusText}`)
+  }
 
-  await new Promise((resolve, reject) => {
-    writer.on('finish', resolve)
-    writer.on('error', reject)
-  })
+  await streamPipeline(response.body!, writer)
 
   if (fileType === 'gzip') {
     tar.extract({
