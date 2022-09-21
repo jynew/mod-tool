@@ -100,7 +100,7 @@ import {
   LogInst
 } from 'naive-ui'
 const formRef = ref<FormInst | null>(null)
-const initVal = {
+const formValue = ref({
   appid: '2098790',
   publishedfileid: '',
   title: '',
@@ -112,8 +112,7 @@ const initVal = {
   guard: '',
   contentfolder: '',
   previewfile: ''
-}
-const formValue = ref({ ...initVal })
+})
 const visibilities = [
   {
     label: '所有人可见',
@@ -234,6 +233,7 @@ const handleValidateClick = (e: MouseEvent) => {
       await ipcRenderer.invoke('set-store', JSON.stringify(auth, null, 2))
       // eslint-disable-next-line no-undef
       await ipcRenderer.invoke('write-file', JSON.stringify(value, null, 2))
+      log.value += 'Downloading file...\n'
       // eslint-disable-next-line no-undef
       log.value += await ipcRenderer.invoke('download-file')
       // eslint-disable-next-line no-undef

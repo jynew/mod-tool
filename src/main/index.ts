@@ -79,7 +79,6 @@ ipcMain.handle('open-file', () => {
   })
 })
 
-fs.mkdirSync(ROOT_CACHE_PATH, { recursive: true })
 const VDF_PATH = path.join(ROOT_CACHE_PATH, 'mod.vdf')
 const STORE_PATH = path.join(ROOT_CACHE_PATH, 'store.json')
 
@@ -108,11 +107,13 @@ ipcMain.handle('get-store', () => {
 })
 
 ipcMain.handle('set-store', (_event, value: string) => {
+  fs.mkdirSync(ROOT_CACHE_PATH, { recursive: true })
   fs.writeFileSync(STORE_PATH, value, 'utf8')
 })
 
 ipcMain.handle('write-file', (_event, value: string) => {
   try {
+    fs.mkdirSync(ROOT_CACHE_PATH, { recursive: true })
     const data = JSON.parse(value)
     const string = vdf.stringify(data)
     fs.writeFileSync(VDF_PATH, '"workshopitem"\n' + '{\n' + string + '}\n', 'utf8')
@@ -127,7 +128,7 @@ const CMD_PATH = path.join(ROOT_CACHE_PATH, fileName)
 ipcMain.handle('download-file', async () => {
   if (!fs.existsSync(CMD_PATH)) {
     await downloadFile(ROOT_CACHE_PATH)
-    return `Downloading file...\n`
+    return `Download the file successfully.\n`
   }
   return `File exists, run now.\n`
 })
